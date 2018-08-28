@@ -3,6 +3,7 @@ console.log('May node be with you ');
 const express = require('express');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
+require('dotenv').config();
 
 const app = express();
 var db;
@@ -11,8 +12,9 @@ var db;
 `req` object */
 
 app.use(bodyParser.urlencoded({extended: true}));
+app.set('view engine', 'ejs');
 
-MongoClient.connect('mongodb://<user>:<password>@xxxxxx.mlab.com:35352/lotza', (err, client) => {
+MongoClient.connect(`mongodb://${process.env.DB_user}:${process.env.DB_paswd}@${process.env.DB_host}.mlab.com:35352/${process.env.DB_name}`, (err, client) => {
 
 	if (err) return console.log('Connection error : ', err);
 	db = client.db('lotza');
@@ -26,10 +28,11 @@ MongoClient.connect('mongodb://<user>:<password>@xxxxxx.mlab.com:35352/lotza', (
 /* CRUD handlers */
 
 app.get('/', (req, res) => {
-	var cursor = db.collection('quotes').find().toArray((err, results) => {
-		console.log('db results : ', results);
+	var cursor = db.collection('quotes').find().toArray((err, result) => {
+		console.log('db results : ', result);
+		res.render('index.ejs', {quotes: result});
 	})
-	res.sendFile(__dirname + '/index.html');
+	//res.sendFile(__dirname + '/index.html');
 });
 
 app.post('/add_quote', (req, res) => {
@@ -42,7 +45,3 @@ app.post('/add_quote', (req, res) => {
 		res.redirect('/');
 	})
 });
-
-// app.get('/quotes', (req, res) => {
-// 	var cursor = db.collection('quotes').find();
-// })
