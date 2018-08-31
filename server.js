@@ -13,6 +13,8 @@ var db;
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
+app.use(express.static('public')); // to make public folder accessible for public by usning buil-in middleware
+app.use(bodyParser.json()); // enabling application to use JSON by using bodyParser.json() middleware
 
 MongoClient.connect(`mongodb://${process.env.DB_user}:${process.env.DB_paswd}@${process.env.DB_host}.mlab.com:35352/${process.env.DB_name}`, (err, client) => {
 
@@ -44,4 +46,24 @@ app.post('/add_quote', (req, res) => {
 		console.log('Quote saved to database');
 		res.redirect('/');
 	})
+});
+
+app.put('/update_quotes', (req, res) => {
+	// handle put request
+	db.collection('quotes').findOneAndUpdate(
+		{name: 'PUT'},{
+			$set: {
+				name: req.body.name,
+				quote: req.body.quote
+			}
+		}, {
+			sort: {_id: -1},
+			upsert: true
+		}, (err, result) => {
+			if (err) return res.send(err);
+			console.log('UPDATED : result : ', result);
+			//res.send(result);
+			res.redirect(req.get('referer'));
+		}
+	)
 });
